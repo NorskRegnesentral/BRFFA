@@ -25,15 +25,15 @@ devtools::install_github("NorskRegnesentral/SpatGEVBMA")
 Then load the data and functions used for the analysis. 
 ```{r}
 # Load yearly flood time series and covariates
-load('data/norwayFlood.RData')
+load("~/BRFFA/data/norwayFlood.Rdata")
 
 # Load functions 
-source('scripts/functions.R')
+source('~/BRFFA/scripts/functions.R')
 ```
 
 We start by exploring some descriptive plots of the covariates. Considering first histograms of the record length, catchment area, percentage of lake, average rain in April and August and percentage of flood contributed to rain vs. snowmelt.  
 
-```{r, echo = FALSE}
+```{r}
 
 # Define location for map plotting
 S <- cbind(covariates$longitude,covariates$latitude)
@@ -51,14 +51,14 @@ hist(covariates$avg.frac.rain,xlab='Rain contribution (%)',ylab='',main = '')
 ```
 
 Now we plot the time series of some selected stations. 
-```{r, echo = FALSE}
-matplot(1870:2015,t(floodData[c(7,50,80,120,23),])*1000,type='l',lty=1,xlab='Year',ylab = 'Yearly Maximum Flood (l/s/km²')
-legend('topleft',lty=1,col=1:5,legend=covariates$station.name[c(7,50,80,120,23)])
+```{r}
+matplot(1870:2015,t(floodData[c(7,50,80,2,23),])*1000,type='l',lty=1,xlab='Year',ylab = 'Yearly Maximum Flood (l/s/km²')
+legend('topleft',lty=1,col=1:5,legend=covariates$station.name[c(7,50,80,2,23)])
 ```
 
 Then we plot the percentage of flood contributed to rain vs. snowmelt according to longitude and latitude of the each considered station, to reveal the spatial distribution of this covariate. 
 
-```{r, echo = FALSE,message=FALSE, warning=FALSE, cache=FALSE}
+```{r,message=FALSE, warning=FALSE, cache=FALSE}
 #Plot map for some covariates 
 library(maps)
 all.colors <- colorRampPalette(c("yellow","forestgreen", "blue"))(7) #heat.colors(7)[7:1]
@@ -86,7 +86,7 @@ legend("bottomright",legend=ltxt,fill=,col=all.colors[1:7],pch=16,cex=1.4)
 
 The main analysis is carried by running 100 000 MCMC simulation by the SpatGEV package. The flood data is structured as a list of time series, one for each station, to allow for difference serie lengths. The covariates are centered and scaled before analysis.  
 
-```{r, echo = FALSE}
+```{r}
 
 ###
 # set the response variable
@@ -106,6 +106,9 @@ for (i in 2:dim(covMat)[2]) {
   covMat[,i] <- standardiseVar(covMat[,i])
 }
 
+# Add intercept 
+covMat <- cbind('Constant' = rep(1,dim(covMat)[1]),covMat)
+
 # Specify prior
 prior.user <- NULL
 prior.user$eta$beta.0 <- c(log(1000),rep(0,dim(covMat)[2]-1))
@@ -114,16 +117,19 @@ prior.user$eta$beta.0 <- c(log(1000),rep(0,dim(covMat)[2]-1))
 
 First, the SpatGEVBMA package is loaded. We run the package with the options to `r nonspatial = TRUE` to non-spationally distributed error, `r log.kappa=TRUE` to have the regression model for the scale parameter on a log scale and to print an output for every 5000 MCMC run. 
 
+In the paper, [Bayesian Regional Flood Frequency Analysis for Large Catchments](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017WR022460) we use 100 000 simulations, but in the following we demonstrate the code by running 100 simulations. 
+
+
 ```{r,message=FALSE, warning=FALSE, cache=FALSE}
 library(SpatGEVBMA)
 nsim <- 100
 res <- spatial.gev.bma(datalist,covMat,S,nsim,prior.user=prior.user,
                        nonspatial = TRUE, log.kappa=TRUE,print.every=5000)
-res$cov.names <- colnames(covariates)
+res$cov.names <- colnames(covMat)  
 
 ```
 
-The result can be analysed by first removing a suitable range of burn-in samples, we seletion 20 000 or 20% of the total MCMC runs. The calculated the inclustion probabilities for each of the covariates within the location $(\mu)$, scale $(\log \kappa)$, and shape $(\xi)$ parameter of the GEV distribution.  
+The result can be analysed by first removing a suitable range of burn-in samples, we seletion 20 000 or 20% of the total MCMC runs. The calculated the inclustion probabilities for each of the covariates within the location $ (\mu) $, scale $ (\log \kappa) $, and shape $ (\xi) $ parameter of the GEV distribution.  
 
 ```{r, echo = FALSE}
 #Process MCMC samples and remove burn-in
@@ -132,13 +138,13 @@ ch <- gev.process.results(res,burn=burn)
 
 #Print inclusion probabilities for covariates
 mat <- cbind(mu=ch$tbl.mu[,"Prob"],kappa=ch$tbl.eta[,"Prob"],xi=ch$tbl.xi[,"Prob"])
-rownames(mat)<- c("Constant",colnames(covMat)[2:dim(covMat)[2]])
+rownames(mat) <- colnames(covMat) 
 round(mat,2)*100
 ```
 
-Then we plot the resulting distribution according to the quantiles or return values, e.g for 1000 year flood, we calculated the $1 - 1/1000 = 0.999$ quantile. The random effects for each MCMC run are simulated from a Gaussian distribution with the corresponding variance $1/\alpha^{(r)}$, separately for each distribution parameter.
+Then we plot the resulting distribution according to the quantiles or return values, e.g for 1000 year flood, we calculated the $1 - 1/1000 = 0.999$ quantile. The random effects for each MCMC run are simulated from a Gaussian distribution with the corresponding variance $ 1/\alpha^{(r)} $, separately for each distribution parameter.
 
-```{r, echo = FALSE}
+```{r}
 ##########################################
 ###### #Plot return values plots
 ##########################################
@@ -168,10 +174,6 @@ for (i in st.no) {
   return.level[[i]] <- tmplist    
 }
 
-
-```
-
-```{r}
 #Plot return values plots
 plotReturnLevel(return.level = return.level,floodData = floodData,
                 floodCov = covariates,
