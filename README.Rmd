@@ -2,14 +2,6 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 # Bayesian regional flood frequency analysis (FFA)
 
 This tutorial describes the data and analysis considered for Bayesian hierachical model for Regional flood frequency analysis. 
@@ -129,7 +121,7 @@ res$cov.names <- colnames(covMat)
 
 ```
 
-The result can be analysed by first removing a suitable range of burn-in samples, we seletion 20 000 or 20% of the total MCMC runs. The calculated the inclustion probabilities for each of the covariates within the location $ (\mu) $, scale $ (\log \kappa) $, and shape $ (\xi) $ parameter of the GEV distribution.  
+The result can be analysed by first removing a suitable range of burn-in samples, we seletion 20 000 or 20% of the total MCMC runs. The calculated the inclustion probabilities for each of the covariates within the location $\mu$, scale $\log\kappa$, and shape $\xi$ parameter of the GEV distribution.  
 
 ```{r, echo = FALSE}
 #Process MCMC samples and remove burn-in
@@ -142,7 +134,7 @@ rownames(mat) <- colnames(covMat)
 round(mat,2)*100
 ```
 
-Then we plot the resulting distribution according to the quantiles or return values, e.g for 1000 year flood, we calculated the $1 - 1/1000 = 0.999$ quantile. The random effects for each MCMC run are simulated from a Gaussian distribution with the corresponding variance $ 1/\alpha^{(r)} $, separately for each distribution parameter.
+Then we plot the resulting distribution according to the quantiles or return values, e.g for 1000 year flood, we calculated the $1 - 1/1000 = 0.999$ quantile. The random effects for each MCMC run are simulated from a Gaussian distribution with the corresponding variance $1/\alpha^{(r)}$, separately for each distribution parameter.
 
 ```{r}
 ##########################################

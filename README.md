@@ -1,6 +1,4 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # Bayesian regional flood frequency analysis (FFA)
 
 This tutorial describes the data and analysis considered for Bayesian
@@ -32,7 +30,6 @@ percentage of lake, average rain in April and August and percentage of
 flood contributed to rain vs. snowmelt.
 
 ``` r
-
 # Define location for map plotting
 S <- cbind(covariates$longitude,covariates$latitude)
 
@@ -96,7 +93,6 @@ one for each station, to allow for difference serie lengths. The
 covariates are centered and scaled before analysis.
 
 ``` r
-
 ###
 # set the response variable
 ####
@@ -144,29 +140,29 @@ res$cov.names <- colnames(covMat)
 The result can be analysed by first removing a suitable range of burn-in
 samples, we seletion 20 000 or 20% of the total MCMC runs. The
 calculated the inclustion probabilities for each of the covariates
-within the location $ () $, scale $ () $, and shape $ () $ parameter of
-the GEV distribution.
+within the location \(\mu\), scale \(\log\kappa\), and shape \(\xi\)
+parameter of the GEV distribution.
 
-    #>                     mu kappa  xi
-    #> Constant           100   100 100
-    #> longitude           19    88  40
-    #> latitude            42    89   5
-    #> pct.eff.lake       100   100   0
-    #> inflow               0     0   0
-    #> avg.frac.rain        4    32  50
-    #> area.total           0     0   0
-    #> avg.rain.april      68    21   0
-    #> avg.rain.august     59   100   0
-    #> avg.snowmelt.march  16    38   2
-    #> gradient            79    16   0
-    #> pct.bedrock         60     8   0
-    #> relative.area       19   100  11
+    ##                     mu kappa  xi
+    ## Constant           100   100 100
+    ## longitude            0    62   0
+    ## latitude             0    86   1
+    ## pct.eff.lake        79   100   0
+    ## inflow               0    19  30
+    ## avg.frac.rain        0    89   0
+    ## area.total           0    29   0
+    ## avg.rain.april     100    24   0
+    ## avg.rain.august    100   100   6
+    ## avg.snowmelt.march   0    14   0
+    ## gradient            91    28   0
+    ## pct.bedrock        100    32   0
+    ## relative.area        0    91   0
 
 Then we plot the resulting distribution according to the quantiles or
 return values, e.g for 1000 year flood, we calculated the
 \(1 - 1/1000 = 0.999\) quantile. The random effects for each MCMC run
 are simulated from a Gaussian distribution with the corresponding
-variance $ 1/^{(r)} $, separately for each distribution parameter.
+variance \(1/\alpha^{(r)}\), separately for each distribution parameter.
 
 ``` r
 ##########################################
@@ -202,7 +198,8 @@ for (i in st.no) {
 plotReturnLevel(return.level = return.level,floodData = floodData,
                 floodCov = covariates,
                 T=T,writeToFile=FALSE,ymin=-0.01,ymax=NULL)
-#> [1] "200011" "200013"
 ```
+
+    ## [1] "200011" "200013"
 
 ![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->![](README_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
